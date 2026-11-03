@@ -29,7 +29,15 @@ fi
 
 # One-time transition from older commits that tracked generated files/uploads.
 # Back them up before Git removes tracking, then restore the live copies.
-mapfile -d '' -t tracked_runtime < <(git ls-files -z -- storage bootstrap/cache database/database.sqlite)
+tracked_runtime=()
+tracked_runtime_file=$(mktemp "${TMPDIR:-/tmp}/sk-portal-tracked.XXXXXXXX")
+trap 'rm -f -- "$tracked_runtime_file"' EXIT
+git ls-files -z -- storage bootstrap/cache database/database.sqlite > "$tracked_runtime_file"
+while IFS= read -r -d '' runtime_path; do
+    tracked_runtime+=("$runtime_path")
+done < "$tracked_runtime_file"
+rm -f -- "$tracked_runtime_file"
+trap - EXIT
 if (( ${#tracked_runtime[@]} )); then
     command -v tar >/dev/null
     backup_dir=$(mktemp -d "${TMPDIR:-/tmp}/sk-portal-runtime.XXXXXXXX")

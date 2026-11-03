@@ -123,3 +123,7 @@ modified uploads/cache/SQLite copies and new uploads survived the cleanup;
 repeat deployment succeeded; application edits were rejected and preserved;
 and an injected merge failure restored backed-up runtime files. This checks
 the checkout-update block, not the live SSH host or its filesystem permissions.
+
+Tracked runtime paths are read from a NUL-delimited temporary file rather than
+Bash process substitution, so deployment does not require `/dev/fd` support in
+the hosting shell.
