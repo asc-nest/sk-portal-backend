@@ -31,36 +31,35 @@ never deploy. Production deployment jobs run one at a time.
    the host's `AllowOverride` configuration.
 5. Add the public half of the Actions SSH key to the server account's
    `~/.ssh/authorized_keys`. Keep the private half in GitHub, not in this repository.
-6. Complete the runtime-file cleanup below before enabling deployment. The script
-   refuses tracked runtime files, tracked edits, and divergent history.
+6. Commit the runtime-file cleanup below with the workflow changes. The script
+   refuses application edits and divergent history. The first automated pull
+   preserves runtime data from older checkouts that still track it.
 
 ## Required cleanup of currently tracked runtime files
 
 At the time this workflow was added, Git tracks `bootstrap/cache/packages.php`,
 `bootstrap/cache/services.php`, `database/database.sqlite`, compiled views,
-`storage/logs/laravel.log`, and two avatar uploads. The deployment guard will fail
-until these are removed from Git tracking. This workflow does not delete them.
+`storage/logs/laravel.log`, and two avatar uploads. These files have now been
+removed from the development Git index with `git rm --cached`; local copies
+remain on disk and `.gitignore` excludes them. Commit those staged removals
+with the updated deployment script and workflow.
 
-1. Back up the server's complete `storage/`, `bootstrap/cache/`, and SQLite file
-   (if used), outside the checkout, before pulling a commit that removes tracking.
-   Git can delete previously tracked files when that commit is pulled.
-2. On a development checkout, add runtime paths to `.gitignore` (a starter file
-   is included), then untrack them without deleting local copies:
+Let the updated GitHub Action perform the first server pull of that commit.
+Do not manually pull the cleanup commit without backing up runtime data first,
+because Git can delete files that were previously tracked.
 
-   ```bash
-   git rm -r --cached --ignore-unmatch storage bootstrap/cache database/database.sqlite
-   ```
+When the server still tracks these paths, the script creates a private archive
+under `${TMPDIR:-/tmp}/sk-portal-runtime.*` of `storage/`, `bootstrap/cache/`, and
+the SQLite file if present. It checks the archive before resetting only those
+backed-up tracked runtime files, fast-forwards to the tested cleanup commit,
+and restores the live copies. An exit trap attempts restoration if the update
+fails. The backup path is printed and retained for manual recovery.
 
-   Commit the tracking changes along with `.gitignore`. Do not untrack application
-   source or `.env.example`. Review the changes before pushing.
-3. Manually pull that cleanup commit on the server, then restore the backed-up
-   runtime files before serving traffic or enabling this deployment workflow.
-   Ensure the standard directories exist: `bootstrap/cache`, `storage/app/public`,
-   `storage/framework/cache/data`, `storage/framework/sessions`,
-   `storage/framework/views`, and `storage/logs`. They must be writable by PHP.
-4. If the server has changes to tracked runtime files that prevent the initial
-   pull, back them up and reconcile the checkout manually. Do not use a hard reset
-   or clean command against live files without a verified backup.
+The script does not permit incoming commits to track runtime data again and
+does not reset application source edits. It creates Laravel's runtime directories
+after pulling; they must be writable by PHP. Backups in `/tmp` are temporary and
+are not a replacement for host backups. If the live application uses SQLite,
+stop writes and take a database-consistent backup before the first cleanup run.
 
 For a brand-new installation, follow the first-deployment commands in
 `.env.example`, including key generation and role seeding. The automated workflow
@@ -118,3 +117,9 @@ dependency installation, migrations, and seeding succeeded, and PHPUnit passed
 all 6 tests (49 assertions) using SQLite and PHP 8.4. No project `.env` was read or
 changed. The workflow's MySQL service and SSH deployment still require a real
 GitHub Actions run after server setup and secret configuration.
+
+The runtime cleanup was also exercised in isolated local Git repositories:
+modified uploads/cache/SQLite copies and new uploads survived the cleanup;
+repeat deployment succeeded; application edits were rejected and preserved;
+and an injected merge failure restored backed-up runtime files. This checks
+the checkout-update block, not the live SSH host or its filesystem permissions.
