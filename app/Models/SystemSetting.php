@@ -45,9 +45,11 @@ class SystemSetting extends Model
      */
     public static function set(string $key, $value): bool
     {
-        $setting = static::where('key', $key)->first();
-        if (!$setting) {
-            return false;
+        $setting = static::firstOrNew(['key' => $key]);
+        if (!$setting->exists) {
+            $setting->label = ucwords(str_replace('_', ' ', $key));
+            $setting->type = is_bool($value) ? 'boolean' : (is_int($value) ? 'integer' : 'string');
+            $setting->group = 'general';
         }
 
         if (is_bool($value)) {

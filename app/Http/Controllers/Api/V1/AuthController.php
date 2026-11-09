@@ -51,7 +51,9 @@ class AuthController extends Controller
             'bio_advocacy' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $fullName = trim("{$validated['first_name']} " . ($validated['middle_name'] ? substr($validated['middle_name'], 0, 1) . '. ' : '') . $validated['last_name'] . ($validated['suffix'] ? ' ' . $validated['suffix'] : ''));
+        $middleInitial = !empty($validated['middle_name']) ? substr($validated['middle_name'], 0, 1) . '. ' : '';
+        $suffixPart = !empty($validated['suffix']) ? ' ' . $validated['suffix'] : '';
+        $fullName = trim("{$validated['first_name']} {$middleInitial}{$validated['last_name']}{$suffixPart}");
 
         $user = User::create([
             'name' => $fullName,
