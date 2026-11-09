@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             SkOfficialsSeeder::class,
             GovernanceRecordsSeeder::class,
+            SystemSettingsSeeder::class,
         ]);
     }
 }

@@ -23,6 +23,11 @@ return new class extends Migration
 
             $table->index('group');
         });
+
+        // Auto-seed default system configurations upon creation
+        if (class_exists(\Database\Seeders\SystemSettingsSeeder::class)) {
+            (new \Database\Seeders\SystemSettingsSeeder())->run();
+        }
     }
 
     /**
