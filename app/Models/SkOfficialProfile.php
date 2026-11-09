@@ -34,6 +34,12 @@ class SkOfficialProfile extends Model
         'official_id_number',
         'barangay_name',
         'purok_sitio',
+        'educational_attainment',
+        'education_degree',
+        'education_school',
+        'skills',
+        'civil_status',
+        'blood_type',
         'passed_measures_count',
         'session_attendance_rate',
         'skmt_compliant',
@@ -49,6 +55,7 @@ class SkOfficialProfile extends Model
             'passed_measures_count' => 'integer',
             'session_attendance_rate' => 'float',
             'skmt_compliant' => 'boolean',
+            'skills' => 'array',
         ];
     }
 

@@ -117,7 +117,20 @@ class InvitationController extends Controller
             'token' => ['required', 'string'],
             'username' => ['required', 'string', 'min:3', 'max:50', 'unique:users,username'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
+            'suffix' => ['nullable', 'string', 'max:20'],
+            'nickname' => ['nullable', 'string', 'max:50'],
             'contact_number' => ['nullable', 'string', 'max:25'],
+            'barangay_name' => ['nullable', 'string', 'max:100'],
+            'purok_sitio' => ['nullable', 'string', 'max:100'],
+            'term_start' => ['nullable', 'date'],
+            'term_end' => ['nullable', 'date'],
+            'educational_attainment' => ['nullable', 'string', 'max:100'],
+            'education_degree' => ['nullable', 'string', 'max:150'],
+            'education_school' => ['nullable', 'string', 'max:200'],
+            'skills' => ['nullable', 'array'],
             'bio_advocacy' => ['nullable', 'string', 'max:1000'],
         ]);
 
@@ -132,9 +145,13 @@ class InvitationController extends Controller
         }
 
         return DB::transaction(function () use ($invitation, $validated) {
+            $firstName = $validated['first_name'] ?? $invitation->first_name ?? 'Official';
+            $lastName = $validated['last_name'] ?? $invitation->last_name ?? 'Member';
+            $fullName = trim("{$firstName} {$lastName}");
+
             // 1. Create User Account
             $user = User::create([
-                'name' => trim("{$invitation->first_name} {$invitation->last_name}"),
+                'name' => $fullName,
                 'username' => $validated['username'],
                 'email' => $invitation->email,
                 'mobile_number' => $validated['contact_number'] ?? null,
@@ -159,17 +176,26 @@ class InvitationController extends Controller
             // 4. Create SK Official Profile
             $profile = SkOfficialProfile::create([
                 'user_id' => $user->id,
-                'first_name' => $invitation->first_name ?? 'Official',
-                'last_name' => $invitation->last_name ?? 'Member',
+                'first_name' => $firstName,
+                'middle_name' => $validated['middle_name'] ?? null,
+                'last_name' => $lastName,
+                'suffix' => $validated['suffix'] ?? null,
+                'nickname' => $validated['nickname'] ?? null,
                 'position' => $invitation->position,
                 'committee_assigned' => $invitation->committee_assigned,
                 'contact_number' => $validated['contact_number'] ?? null,
                 'bio_advocacy' => $validated['bio_advocacy'] ?? null,
                 'official_id_number' => $idNumber,
-                'term_start' => '2023-11-01',
-                'term_end' => '2026-11-01',
+                'term_start' => $validated['term_start'] ?? '2023-11-01',
+                'term_end' => $validated['term_end'] ?? '2026-11-01',
                 'is_active_term' => true,
-                'barangay_name' => 'Barangay Central',
+                'barangay_name' => $validated['barangay_name'] ?? 'Fort Bonifacio',
+                'purok_sitio' => $validated['purok_sitio'] ?? null,
+                'educational_attainment' => $validated['educational_attainment'] ?? null,
+                'education_degree' => $validated['education_degree'] ?? null,
+                'education_school' => $validated['education_school'] ?? null,
+                'skills' => $validated['skills'] ?? [],
+                'skmt_compliant' => true,
             ]);
 
             // 5. Mark Invitation as Accepted

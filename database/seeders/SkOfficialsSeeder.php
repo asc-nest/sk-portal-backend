@@ -12,11 +12,11 @@ use Illuminate\Support\Carbon;
 class SkOfficialsSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Run the database seeds for all 38 Barangays of Taguig City.
      */
     public function run(): void
     {
-        // 1. Super Admin
+        // 1. Super Administrator (System Admin only - Excluded from SK Officials list)
         $admin = User::firstOrCreate(
             ['email' => 'admin@skportal.gov.ph'],
             [
@@ -27,194 +27,219 @@ class SkOfficialsSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        $admin->assignRole('super_admin');
+        $admin->syncRoles(['super_admin']);
 
-        // 2. SK Chairperson
-        $chairpersonUser = User::firstOrCreate(
-            ['email' => 'chairperson@skportal.gov.ph'],
-            [
-                'name' => 'Hon. John Patrick Santos',
-                'username' => 'jpsantos',
-                'mobile_number' => '09171234567',
-                'password' => Hash::make('ChairPass123!'),
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-        $chairpersonUser->assignRole('sk_chairperson');
+        // 38 Official Barangays of Taguig City (1st & 2nd Districts + 10 Embo Barangays)
+        $barangays = [
+            'Bagumbayan',
+            'Bambang',
+            'Calzada-Tipas',
+            'Cembo',
+            'Central Bicutan',
+            'Central Signal Village',
+            'Comembo',
+            'East Rembo',
+            'Fort Bonifacio',
+            'Hagonoy',
+            'Ibayo-Tipas',
+            'Katuparan',
+            'Ligid-Tipas',
+            'Lower Bicutan',
+            'Maharlika Village',
+            'Napindan',
+            'New Lower Bicutan',
+            'North Daang Hari',
+            'North Signal Village',
+            'Palingon-Tipas',
+            'Pembo',
+            'Pinagsama',
+            'Pitogo',
+            'Post Proper Northside',
+            'Post Proper Southside',
+            'Rizal',
+            'San Miguel',
+            'Santa Ana',
+            'South Cembo',
+            'South Daang Hari',
+            'South Signal Village',
+            'Tanyag',
+            'Tuktukan',
+            'Upper Bicutan',
+            'Ususan',
+            'Wawa',
+            'West Rembo',
+            'Western Bicutan',
+        ];
 
-        SkOfficialProfile::firstOrCreate(
-            ['user_id' => $chairpersonUser->id],
-            [
-                'first_name' => 'John Patrick',
-                'middle_name' => 'Ramos',
-                'last_name' => 'Santos',
-                'suffix' => null,
-                'nickname' => 'JP',
-                'gender' => 'male',
-                'birthdate' => '2000-05-15',
-                'contact_number' => '09171234567',
-                'position' => 'chairperson',
-                'committee_assigned' => 'Executive & Overall Council Leadership',
-                'term_start' => '2023-11-01',
-                'term_end' => '2026-11-01',
-                'is_active_term' => true,
-                'bio_advocacy' => 'Championing youth digital empowerment, accessible sports facilities, and transparent leadership for all youth constituents in Barangay Central.',
-                'official_id_number' => 'SK-2023-001',
-                'barangay_name' => 'Barangay Central',
-                'purok_sitio' => 'Purok 1 - Maharlika',
-            ]
-        );
+        $skillsBank = [
+            'Project Management', 'Public Speaking', 'Graphic Design', 'Financial Management',
+            'Youth Leadership', 'First Aid & DRRM', 'Event Organizing', 'Digital Marketing',
+            'Social Media Management', 'Web Development', 'Community Organizing', 'Sports Coaching',
+            'Videography', 'Creative Writing', 'Data Analysis', 'Conflict Resolution'
+        ];
 
-        // 3. SK Secretary
-        $secretaryUser = User::firstOrCreate(
-            ['email' => 'secretary@skportal.gov.ph'],
-            [
-                'name' => 'Hon. Alyssa Marie Cruz',
-                'username' => 'alyssacruz',
-                'mobile_number' => '09181234568',
-                'password' => Hash::make('SecretaryPass123!'),
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-        $secretaryUser->assignRole('sk_secretary');
+        $schools = [
+            'Taguig City University',
+            'Polytechnic University of the Philippines',
+            'University of the Philippines Diliman',
+            'University of Santo Tomas',
+            'De La Salle University',
+            'Technological University of the Philippines',
+            'Emilio Aguinaldo College',
+            'Taguig National High School',
+        ];
 
-        SkOfficialProfile::firstOrCreate(
-            ['user_id' => $secretaryUser->id],
-            [
-                'first_name' => 'Alyssa Marie',
-                'middle_name' => 'Delos Reyes',
-                'last_name' => 'Cruz',
-                'suffix' => null,
-                'nickname' => 'Aly',
-                'gender' => 'female',
-                'birthdate' => '2001-08-22',
-                'contact_number' => '09181234568',
-                'position' => 'secretary',
-                'committee_assigned' => 'Council Secretariat & Youth Registry Records',
-                'term_start' => '2023-11-01',
-                'term_end' => '2026-11-01',
-                'is_active_term' => true,
-                'bio_advocacy' => 'Ensuring meticulous documentation, open access to youth council resolutions, and fair registration for every barangay youth.',
-                'official_id_number' => 'SK-2023-002',
-                'barangay_name' => 'Barangay Central',
-                'purok_sitio' => 'Purok 3 - Sampaguita',
-            ]
-        );
+        $degrees = [
+            'BS Information Technology',
+            'BS Business Administration',
+            'AB Political Science',
+            'BS Civil Engineering',
+            'BS Nursing',
+            'BS Accountancy',
+            'BS Criminology',
+            'BS Hospitality Management',
+            'Senior High - STEM',
+            'Senior High - HUMSS',
+            'Senior High - ABM',
+        ];
 
-        // 4. SK Treasurer
-        $treasurerUser = User::firstOrCreate(
-            ['email' => 'treasurer@skportal.gov.ph'],
-            [
-                'name' => 'Hon. Rafael Mateo Tan',
-                'username' => 'rafatan',
-                'mobile_number' => '09191234569',
-                'password' => Hash::make('TreasurerPass123!'),
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-        $treasurerUser->assignRole('sk_treasurer');
+        $firstNamesMale = ['John Patrick', 'Marcus Daniel', 'Rafael Mateo', 'Christian', 'Joshua', 'Kevin', 'Adrian', 'Angelo', 'Gabriel', 'Justin', 'Mark Anthony', 'Carl Vincent', 'Paolo'];
+        $firstNamesFemale = ['Alyssa Marie', 'Bea Katherine', 'Angelica', 'Camille', 'Nicole Joy', 'Princess Sarah', 'Rica Mae', 'Patricia', 'Andrea', 'Marielle', 'Jasmine', 'Kristine'];
+        $lastNames = ['Santos', 'Cruz', 'Tan', 'Reyes', 'Mendoza', 'Delos Reyes', 'Villanueva', 'Fernandez', 'Bautista', 'Aquino', 'Garcia', 'Torres', 'Ramos', 'Flores', 'Castillo', 'Navarro', 'Morales'];
 
-        SkOfficialProfile::firstOrCreate(
-            ['user_id' => $treasurerUser->id],
-            [
-                'first_name' => 'Rafael Mateo',
-                'middle_name' => 'Gomez',
-                'last_name' => 'Tan',
-                'suffix' => null,
-                'nickname' => 'Rafa',
-                'gender' => 'male',
-                'birthdate' => '1999-12-04',
-                'contact_number' => '09191234569',
-                'position' => 'treasurer',
-                'committee_assigned' => 'Ways and Means & Financial Transparency',
-                'term_start' => '2023-11-01',
-                'term_end' => '2026-11-01',
-                'is_active_term' => true,
-                'bio_advocacy' => 'Upholding strict fiscal accountability and ensuring 100% of youth funds directly impact grassroots community projects.',
-                'official_id_number' => 'SK-2023-003',
-                'barangay_name' => 'Barangay Central',
-                'purok_sitio' => 'Purok 2 - Bagong Pag-asa',
-            ]
-        );
+        $defaultPassword = Hash::make('CouncilPass123!');
+        $chairpersonUser = null;
 
-        // 5. SK Kagawad (Committee on Sports)
-        $kagawadSports = User::firstOrCreate(
-            ['email' => 'kagawad.sports@skportal.gov.ph'],
-            [
-                'name' => 'Hon. Marcus Daniel Reyes',
-                'username' => 'marcusreyes',
-                'mobile_number' => '09201234570',
-                'password' => Hash::make('KagawadPass123!'),
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-        $kagawadSports->assignRole('sk_kagawad');
+        foreach ($barangays as $bIndex => $brgy) {
+            $slug = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $brgy));
 
-        SkOfficialProfile::firstOrCreate(
-            ['user_id' => $kagawadSports->id],
-            [
-                'first_name' => 'Marcus Daniel',
-                'middle_name' => 'Villanueva',
-                'last_name' => 'Reyes',
-                'suffix' => 'Jr.',
-                'nickname' => 'Marc',
-                'gender' => 'male',
-                'birthdate' => '2002-03-10',
-                'contact_number' => '09201234570',
-                'position' => 'kagawad',
-                'committee_assigned' => 'Committee on Youth & Sports Development',
-                'term_start' => '2023-11-01',
-                'term_end' => '2026-11-01',
-                'is_active_term' => true,
-                'bio_advocacy' => 'Promoting healthy active lifestyles, anti-drug awareness, and inter-purok athletic tournaments for grassroots talent discovery.',
-                'official_id_number' => 'SK-2023-004',
-                'barangay_name' => 'Barangay Central',
-                'purok_sitio' => 'Purok 4 - Pagkakaisa',
-            ]
-        );
+            // Roles per council: 1 Chairperson, 1 Secretary, 1 Treasurer, 2-3 Kagawads
+            $positions = [
+                ['pos' => 'chairperson', 'role' => 'sk_chairperson', 'comm' => 'Executive & Overall Council Leadership'],
+                ['pos' => 'secretary', 'role' => 'sk_secretary', 'comm' => 'Council Secretariat & Youth Registry Records'],
+                ['pos' => 'treasurer', 'role' => 'sk_treasurer', 'comm' => 'Ways and Means & Financial Transparency'],
+                ['pos' => 'kagawad', 'role' => 'sk_kagawad', 'comm' => 'Committee on Youth & Sports Development'],
+                ['pos' => 'kagawad', 'role' => 'sk_kagawad', 'comm' => 'Committee on Education, Arts & Culture'],
+                ['pos' => 'kagawad', 'role' => 'sk_kagawad', 'comm' => 'Committee on Health & Environmental Protection'],
+            ];
 
-        // 6. SK Kagawad (Committee on Education & Culture)
-        $kagawadEducation = User::firstOrCreate(
-            ['email' => 'kagawad.education@skportal.gov.ph'],
-            [
-                'name' => 'Hon. Bea Katherine Mendoza',
-                'username' => 'beamendoza',
-                'mobile_number' => '09211234571',
-                'password' => Hash::make('KagawadPass123!'),
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
-        $kagawadEducation->assignRole('sk_kagawad');
+            foreach ($positions as $pIndex => $posInfo) {
+                // If Fort Bonifacio, keep standard test accounts intact
+                $isFortBonifacio = ($brgy === 'Fort Bonifacio');
+                $isDefaultChair = $isFortBonifacio && $posInfo['pos'] === 'chairperson';
+                $isDefaultSec = $isFortBonifacio && $posInfo['pos'] === 'secretary';
+                $isDefaultTreas = $isFortBonifacio && $posInfo['pos'] === 'treasurer';
+                $isDefaultKagawadSports = $isFortBonifacio && $posInfo['pos'] === 'kagawad' && $pIndex === 3;
+                $isDefaultKagawadEdu = $isFortBonifacio && $posInfo['pos'] === 'kagawad' && $pIndex === 4;
 
-        SkOfficialProfile::firstOrCreate(
-            ['user_id' => $kagawadEducation->id],
-            [
-                'first_name' => 'Bea Katherine',
-                'middle_name' => 'Fernandez',
-                'last_name' => 'Mendoza',
-                'suffix' => null,
-                'nickname' => 'Bea',
-                'gender' => 'female',
-                'birthdate' => '2003-09-18',
-                'contact_number' => '09211234571',
-                'position' => 'kagawad',
-                'committee_assigned' => 'Committee on Education, Arts & Culture',
-                'term_start' => '2023-11-01',
-                'term_end' => '2026-11-01',
-                'is_active_term' => true,
-                'bio_advocacy' => 'Expanding free college entrance review programs, community study hubs, and scholarships for deserving in-school youth.',
-                'official_id_number' => 'SK-2023-005',
-                'barangay_name' => 'Barangay Central',
-                'purok_sitio' => 'Purok 5 - Silangan',
-            ]
-        );
+                if ($isDefaultChair) {
+                    $email = 'chairperson@skportal.gov.ph';
+                    $username = 'jpsantos';
+                    $name = 'Hon. John Patrick Santos';
+                    $fn = 'John Patrick'; $mn = 'Ramos'; $ln = 'Santos'; $suf = null; $nick = 'JP'; $gender = 'male';
+                    $pwd = Hash::make('ChairPass123!');
+                } elseif ($isDefaultSec) {
+                    $email = 'secretary@skportal.gov.ph';
+                    $username = 'alyssacruz';
+                    $name = 'Hon. Alyssa Marie Cruz';
+                    $fn = 'Alyssa Marie'; $mn = 'Delos Reyes'; $ln = 'Cruz'; $suf = null; $nick = 'Aly'; $gender = 'female';
+                    $pwd = Hash::make('SecretaryPass123!');
+                } elseif ($isDefaultTreas) {
+                    $email = 'treasurer@skportal.gov.ph';
+                    $username = 'rafatan';
+                    $name = 'Hon. Rafael Mateo Tan';
+                    $fn = 'Rafael Mateo'; $mn = 'Gomez'; $ln = 'Tan'; $suf = null; $nick = 'Rafa'; $gender = 'male';
+                    $pwd = Hash::make('TreasurerPass123!');
+                } elseif ($isDefaultKagawadSports) {
+                    $email = 'kagawad.sports@skportal.gov.ph';
+                    $username = 'marcusreyes';
+                    $name = 'Hon. Marcus Daniel Reyes';
+                    $fn = 'Marcus Daniel'; $mn = 'Villanueva'; $ln = 'Reyes'; $suf = 'Jr.'; $nick = 'Marc'; $gender = 'male';
+                    $pwd = Hash::make('KagawadPass123!');
+                } elseif ($isDefaultKagawadEdu) {
+                    $email = 'kagawad.education@skportal.gov.ph';
+                    $username = 'beamendoza';
+                    $name = 'Hon. Bea Katherine Mendoza';
+                    $fn = 'Bea Katherine'; $mn = 'Fernandez'; $ln = 'Mendoza'; $suf = null; $nick = 'Bea'; $gender = 'female';
+                    $pwd = Hash::make('KagawadPass123!');
+                } else {
+                    $isMale = ($pIndex % 2 === 0);
+                    $gender = $isMale ? 'male' : 'female';
+                    $fn = $isMale ? $firstNamesMale[($bIndex + $pIndex) % count($firstNamesMale)] : $firstNamesFemale[($bIndex + $pIndex) % count($firstNamesFemale)];
+                    $mn = $lastNames[($bIndex * 2 + $pIndex) % count($lastNames)];
+                    $ln = $lastNames[($bIndex * 3 + $pIndex + 1) % count($lastNames)];
+                    $suf = ($isMale && $pIndex === 5) ? 'III' : null;
+                    $nick = explode(' ', $fn)[0];
+                    $username = strtolower(substr($nick, 0, 4) . $slug . ($pIndex + 1));
+                    $email = "{$posInfo['pos']}.{$slug}{$pIndex}@skportal.gov.ph";
+                    $name = "Hon. {$fn} {$ln}" . ($suf ? " {$suf}" : "");
+                    $pwd = $defaultPassword;
+                }
 
-        // 7. Active Sample Invitation for Testing Invite Flow
+                $user = User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'name' => $name,
+                        'username' => $username,
+                        'mobile_number' => '09' . str_pad((string)(170000000 + ($bIndex * 10) + $pIndex), 9, '0', STR_PAD_LEFT),
+                        'password' => $pwd,
+                        'is_active' => true,
+                        'email_verified_at' => now(),
+                    ]
+                );
+                $user->syncRoles([$posInfo['role']]);
+
+                if ($isDefaultChair) {
+                    $chairpersonUser = $user;
+                }
+
+                // Assigned skills (3-5 per official)
+                $selectedSkills = [];
+                $skillOffset = ($bIndex * 3 + $pIndex) % count($skillsBank);
+                for ($s = 0; $s < 4; $s++) {
+                    $selectedSkills[] = $skillsBank[($skillOffset + $s) % count($skillsBank)];
+                }
+
+                // Educational attainment
+                $eduLevel = ($pIndex === 0 || $pIndex === 2) ? "Bachelor's Degree" : (($pIndex === 1) ? "College Graduate" : "College Undergraduate");
+                $eduDegree = $degrees[($bIndex + $pIndex) % count($degrees)];
+                $eduSchool = $schools[($bIndex * 2 + $pIndex) % count($schools)];
+
+                $idNumber = sprintf('SK-%02d-%03d', ($bIndex + 1), $user->id);
+
+                SkOfficialProfile::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'first_name' => $fn,
+                        'middle_name' => $mn,
+                        'last_name' => $ln,
+                        'suffix' => $suf,
+                        'nickname' => $nick,
+                        'gender' => $gender,
+                        'birthdate' => Carbon::createFromDate(2001, 1, 1)->addMonths($bIndex + $pIndex)->format('Y-m-d'),
+                        'contact_number' => $user->mobile_number,
+                        'position' => $posInfo['pos'],
+                        'committee_assigned' => $posInfo['comm'],
+                        'term_start' => '2023-11-01',
+                        'term_end' => '2026-11-01',
+                        'is_active_term' => true,
+                        'bio_advocacy' => "Advancing youth empowerment, transparent public service, and inclusive programs for all youth constituents of Barangay {$brgy}.",
+                        'official_id_number' => $idNumber,
+                        'barangay_name' => $brgy,
+                        'purok_sitio' => "Purok " . (($pIndex % 4) + 1),
+                        'passed_measures_count' => rand(4, 18),
+                        'session_attendance_rate' => round(90 + (rand(0, 100) / 10), 1),
+                        'skmt_compliant' => true,
+                        'educational_attainment' => $eduLevel,
+                        'education_degree' => $eduDegree,
+                        'education_school' => $eduSchool,
+                        'skills' => array_values(array_unique($selectedSkills)),
+                    ]
+                );
+            }
+        }
+
+        // Active Sample Invitation for Testing Invite Flow
         OfficialInvitation::firstOrCreate(
             ['token' => 'sample-invite-token-kagawad-health-2026'],
             [
@@ -225,7 +250,7 @@ class SkOfficialsSeeder extends Seeder
                 'committee_assigned' => 'Committee on Health & Environmental Protection',
                 'expires_at' => Carbon::now()->addDays(7),
                 'accepted_at' => null,
-                'created_by' => $chairpersonUser->id,
+                'created_by' => $chairpersonUser ? $chairpersonUser->id : $admin->id,
             ]
         );
     }

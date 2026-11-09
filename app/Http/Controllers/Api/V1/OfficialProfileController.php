@@ -19,7 +19,15 @@ class OfficialProfileController extends Controller
     {
         $query = SkOfficialProfile::query()
             ->where('is_active_term', true)
+            ->whereDoesntHave('user.roles', function ($q) {
+                $q->where('name', 'super_admin');
+            })
             ->with(['user:id,email,username', 'measures']);
+
+        // Filter by barangay
+        if ($request->filled('barangay')) {
+            $query->where('barangay_name', $request->query('barangay'));
+        }
 
         // Filter by position
         if ($request->filled('position')) {
@@ -31,13 +39,21 @@ class OfficialProfileController extends Controller
             $query->where('committee_assigned', 'like', '%' . $request->query('committee') . '%');
         }
 
-        // Search by name
+        // Filter by skill
+        if ($request->filled('skill')) {
+            $skill = $request->query('skill');
+            $query->where('skills', 'like', '%' . $skill . '%');
+        }
+
+        // Search by name, committee, barangay, or skills
         if ($request->filled('search')) {
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('committee_assigned', 'like', "%{$search}%");
+                  ->orWhere('barangay_name', 'like', "%{$search}%")
+                  ->orWhere('committee_assigned', 'like', "%{$search}%")
+                  ->orWhere('skills', 'like', "%{$search}%");
             });
         }
 
@@ -58,7 +74,7 @@ class OfficialProfileController extends Controller
             'data' => $officials,
             'meta' => [
                 'total_officials' => $officials->count(),
-                'barangay' => 'Barangay Central',
+                'barangay' => $request->query('barangay') ?? 'All 38 Barangays - City of Taguig',
             ],
         ]);
     }
@@ -68,7 +84,10 @@ class OfficialProfileController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $query = SkOfficialProfile::with(['user:id,email,username', 'measures']);
+        $query = SkOfficialProfile::with(['user:id,email,username', 'measures'])
+            ->whereDoesntHave('user.roles', function ($q) {
+                $q->where('name', 'super_admin');
+            });
         
         $official = is_numeric($id)
             ? $query->find($id)
@@ -77,7 +96,12 @@ class OfficialProfileController extends Controller
         if (!$official) {
             // Also try fallback lookup on user_id
             if (is_numeric($id)) {
-                $official = SkOfficialProfile::with(['user:id,email,username', 'measures'])->where('user_id', $id)->first();
+                $official = SkOfficialProfile::with(['user:id,email,username', 'measures'])
+                    ->whereDoesntHave('user.roles', function ($q) {
+                        $q->where('name', 'super_admin');
+                    })
+                    ->where('user_id', $id)
+                    ->first();
             }
         }
 
@@ -109,8 +133,9 @@ class OfficialProfileController extends Controller
         $firstName = $nameParts[0] ?? 'System';
         $lastName = count($nameParts) > 1 ? end($nameParts) : 'Official';
 
+        $isAdmin = $user->hasRole('super_admin');
         $position = 'kagawad';
-        if ($user->hasRole('super_admin')) {
+        if ($isAdmin) {
             $position = 'chairperson';
         } elseif ($user->hasRole('sk_chairperson')) {
             $position = 'chairperson';
@@ -125,12 +150,12 @@ class OfficialProfileController extends Controller
             'first_name' => $firstName,
             'last_name' => $lastName,
             'position' => $position,
-            'committee_assigned' => 'Executive & Council Affairs',
+            'committee_assigned' => $isAdmin ? 'Federation Administration' : 'Executive & Council Affairs',
             'term_start' => '2023-11-01',
             'term_end' => '2026-11-01',
-            'is_active_term' => true,
-            'barangay_name' => 'Barangay Central',
-            'official_id_number' => 'SK-' . date('Y') . '-' . str_pad((string)$user->id, 3, '0', STR_PAD_LEFT),
+            'is_active_term' => !$isAdmin, // Super admin is NOT an active SK official in public listings
+            'barangay_name' => $isAdmin ? 'Taguig City Hall' : 'Fort Bonifacio',
+            'official_id_number' => ($isAdmin ? 'ADMIN-' : 'SK-' . date('Y') . '-') . str_pad((string)$user->id, 3, '0', STR_PAD_LEFT),
         ]);
 
         $user->setRelation('officialProfile', $profile);
@@ -144,6 +169,26 @@ class OfficialProfileController extends Controller
     {
         /** @var User $user */
         $user = $request->user()->load(['officialProfile', 'roles']);
+
+        // Super Admin is purely an administrative account and does not have an SK Official Profile
+        if ($user->hasRole('super_admin') || $user->username === 'superadmin') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Super Administrator account.',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'username' => $user->username,
+                        'roles' => $user->roles->pluck('name'),
+                    ],
+                    'profile' => null,
+                    'is_super_admin' => true,
+                ],
+            ]);
+        }
+
         $profile = $this->getOrCreateProfile($user);
         $profile->load(['measures', 'sessionAttendances']);
 
@@ -193,6 +238,13 @@ class OfficialProfileController extends Controller
             'birthdate' => ['nullable', 'date'],
             'contact_number' => ['nullable', 'string', 'max:25'],
             'purok_sitio' => ['nullable', 'string', 'max:100'],
+            'barangay_name' => ['nullable', 'string', 'max:100'],
+            'educational_attainment' => ['nullable', 'string', 'max:100'],
+            'education_degree' => ['nullable', 'string', 'max:150'],
+            'education_school' => ['nullable', 'string', 'max:200'],
+            'skills' => ['nullable', 'array'],
+            'civil_status' => ['nullable', 'string', 'max:50'],
+            'blood_type' => ['nullable', 'string', 'max:10'],
             'bio_advocacy' => ['nullable', 'string', 'max:1000'],
             'passed_measures_count' => ['nullable', 'integer', 'min:0'],
             'session_attendance_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],

@@ -17,12 +17,38 @@ class StatsController extends Controller
     {
         $totalJurisdictionBarangays = 38;
 
-        $activeProfiles = SkOfficialProfile::where('is_active_term', true)->get();
+        $activeProfiles = SkOfficialProfile::where('is_active_term', true)
+            ->whereDoesntHave('user.roles', function ($q) {
+                $q->where('name', 'super_admin');
+            })
+            ->get();
         $totalOfficials = $activeProfiles->count();
 
         // Unique onboarded barangays
         $onboardedBarangays = $activeProfiles->pluck('barangay_name')->filter()->unique()->values()->all();
         $onboardedCount = count($onboardedBarangays);
+
+        // Skills distribution summary
+        $skillsTally = [];
+        foreach ($activeProfiles as $profile) {
+            $skills = $profile->skills;
+            if (is_array($skills)) {
+                foreach ($skills as $skill) {
+                    $trimmed = trim($skill);
+                    if (!empty($trimmed)) {
+                        $skillsTally[$trimmed] = ($skillsTally[$trimmed] ?? 0) + 1;
+                    }
+                }
+            }
+        }
+        arsort($skillsTally);
+
+        // Educational attainment summary
+        $educationTally = [];
+        foreach ($activeProfiles as $profile) {
+            $level = $profile->educational_attainment ?: 'Not Specified';
+            $educationTally[$level] = ($educationTally[$level] ?? 0) + 1;
+        }
 
         // SKMT Certified
         $skmtCertifiedCount = $activeProfiles->where('skmt_compliant', true)->count();
@@ -63,6 +89,8 @@ class StatsController extends Controller
                 'total_council_sessions' => $totalSessions,
                 'avg_session_attendance_rate' => $avgAttendance,
                 'onboarded_barangays' => $onboardedBarangays,
+                'skills_distribution' => $skillsTally,
+                'education_distribution' => $educationTally,
             ],
         ]);
     }
