@@ -78,19 +78,10 @@ class SkOfficialsSeeder extends Seeder
             'Videography', 'Creative Writing', 'Data Analysis', 'Conflict Resolution'
         ];
 
-        $schools = [
-            'Taguig City University',
-            'Polytechnic University of the Philippines',
-            'University of the Philippines Diliman',
-            'University of Santo Tomas',
-            'De La Salle University',
-            'Technological University of the Philippines',
-            'Emilio Aguinaldo College',
-            'Taguig National High School',
-        ];
-
-        $degrees = [
+        // College Degrees & Universities
+        $collegeDegrees = [
             'BS Information Technology',
+            'BS Computer Science',
             'BS Business Administration',
             'AB Political Science',
             'BS Civil Engineering',
@@ -98,9 +89,59 @@ class SkOfficialsSeeder extends Seeder
             'BS Accountancy',
             'BS Criminology',
             'BS Hospitality Management',
-            'Senior High - STEM',
-            'Senior High - HUMSS',
-            'Senior High - ABM',
+            'BS Psychology',
+            'BS Public Administration',
+            'Bachelor of Secondary Education',
+            'BS Tourism Management',
+            'BS Customs Administration',
+        ];
+
+        $universities = [
+            'Taguig City University',
+            'Polytechnic University of the Philippines',
+            'University of the Philippines Diliman',
+            'University of Santo Tomas',
+            'De La Salle University',
+            'Technological University of the Philippines',
+            'Emilio Aguinaldo College',
+            'Pamantasan ng Lungsod ng Maynila',
+            'Far Eastern University',
+            'Adamson University',
+            'Philippine Normal University',
+        ];
+
+        // Senior High Strands & High Schools
+        $shsStrands = [
+            'Senior High - STEM (Science & Technology)',
+            'Senior High - HUMSS (Humanities & Social Sciences)',
+            'Senior High - ABM (Accountancy & Business)',
+            'Senior High - GAS (General Academic Strand)',
+            'Senior High - TVL (Information & Communications Tech)',
+        ];
+
+        $highSchools = [
+            'Taguig National High School',
+            'Sen. Renato "Compañero" Cayetano Memorial Science & Technology High School',
+            'Taguig Science High School',
+            'Signal Village National High School',
+            'Western Bicutan National High School',
+            'Upper Bicutan National High School',
+            'Fort Bonifacio High School',
+            'Tibagan High School',
+        ];
+
+        // Vocational Courses & Centers
+        $vocationalCourses = [
+            'Computer Systems Servicing NC II',
+            'Automotive Servicing NC II',
+            'Cookery & Culinary Arts NC II',
+            'Electrical Installation & Maintenance NC II',
+            'Visual Graphic Design NC III',
+        ];
+
+        $vocationalSchools = [
+            'TESDA Women\'s Center (Taguig)',
+            'Taguig Manpower Training Center',
         ];
 
         $firstNamesMale = ['John Patrick', 'Marcus Daniel', 'Rafael Mateo', 'Christian', 'Joshua', 'Kevin', 'Adrian', 'Angelo', 'Gabriel', 'Justin', 'Mark Anthony', 'Carl Vincent', 'Paolo'];
@@ -200,10 +241,65 @@ class SkOfficialsSeeder extends Seeder
                     $selectedSkills[] = $skillsBank[($skillOffset + $s) % count($skillsBank)];
                 }
 
-                // Educational attainment
-                $eduLevel = ($pIndex === 0 || $pIndex === 2) ? "Bachelor's Degree" : (($pIndex === 1) ? "College Graduate" : "College Undergraduate");
-                $eduDegree = $degrees[($bIndex + $pIndex) % count($degrees)];
-                $eduSchool = $schools[($bIndex * 2 + $pIndex) % count($schools)];
+                // Educational attainment mapping (strictly matching educational level with appropriate degree/strand & institution)
+                if ($isDefaultChair) {
+                    $eduLevel = "Bachelor's Degree / College Graduate";
+                    $eduDegree = 'BS Information Technology';
+                    $eduSchool = 'Polytechnic University of the Philippines';
+                } elseif ($isDefaultSec) {
+                    $eduLevel = "Bachelor's Degree / College Graduate";
+                    $eduDegree = 'AB Political Science';
+                    $eduSchool = 'University of the Philippines Diliman';
+                } elseif ($isDefaultTreas) {
+                    $eduLevel = "Bachelor's Degree / College Graduate";
+                    $eduDegree = 'BS Accountancy';
+                    $eduSchool = 'Taguig City University';
+                } elseif ($isDefaultKagawadSports) {
+                    $eduLevel = 'College Undergraduate';
+                    $eduDegree = 'BS Business Administration';
+                    $eduSchool = 'Taguig City University';
+                } elseif ($isDefaultKagawadEdu) {
+                    $eduLevel = "Bachelor's Degree / College Graduate";
+                    $eduDegree = 'Bachelor of Secondary Education';
+                    $eduSchool = 'Philippine Normal University';
+                } elseif ($posInfo['pos'] === 'chairperson') {
+                    // Chairpersons are mostly college graduates or undergraduates
+                    $isGrad = ($bIndex % 3 !== 0);
+                    $eduLevel = $isGrad ? "Bachelor's Degree / College Graduate" : 'College Undergraduate';
+                    $eduDegree = $collegeDegrees[($bIndex + $pIndex) % count($collegeDegrees)];
+                    $eduSchool = $universities[($bIndex * 2 + $pIndex) % count($universities)];
+                } elseif ($posInfo['pos'] === 'secretary') {
+                    $isGrad = ($bIndex % 3 !== 1);
+                    $eduLevel = $isGrad ? "Bachelor's Degree / College Graduate" : 'College Undergraduate';
+                    $eduDegree = $collegeDegrees[($bIndex + 4 + $pIndex) % count($collegeDegrees)];
+                    $eduSchool = $universities[($bIndex * 2 + 1) % count($universities)];
+                } elseif ($posInfo['pos'] === 'treasurer') {
+                    $isGrad = ($bIndex % 3 !== 2);
+                    $eduLevel = $isGrad ? "Bachelor's Degree / College Graduate" : 'College Undergraduate';
+                    $treasurerDegrees = ['BS Accountancy', 'BS Business Administration', 'BS Information Technology', 'BS Public Administration', 'BS Computer Science'];
+                    $eduDegree = $treasurerDegrees[$bIndex % count($treasurerDegrees)];
+                    $eduSchool = $universities[($bIndex * 2 + 2) % count($universities)];
+                } else {
+                    // Kagawad: realistic cross-section of youth councilors
+                    $cycle = ($bIndex + $pIndex) % 7;
+                    if ($cycle === 0) {
+                        $eduLevel = 'Senior High School Graduate';
+                        $eduDegree = $shsStrands[($bIndex + $pIndex) % count($shsStrands)];
+                        $eduSchool = $highSchools[($bIndex + $pIndex) % count($highSchools)];
+                    } elseif ($cycle === 1) {
+                        $eduLevel = 'Vocational / Technical Course';
+                        $eduDegree = $vocationalCourses[($bIndex + $pIndex) % count($vocationalCourses)];
+                        $eduSchool = $vocationalSchools[($bIndex + $pIndex) % count($vocationalSchools)];
+                    } elseif ($cycle % 2 === 0) {
+                        $eduLevel = "Bachelor's Degree / College Graduate";
+                        $eduDegree = $collegeDegrees[($bIndex + $pIndex) % count($collegeDegrees)];
+                        $eduSchool = $universities[($bIndex * 2 + $pIndex) % count($universities)];
+                    } else {
+                        $eduLevel = 'College Undergraduate';
+                        $eduDegree = $collegeDegrees[($bIndex + $pIndex) % count($collegeDegrees)];
+                        $eduSchool = $universities[($bIndex * 2 + $pIndex) % count($universities)];
+                    }
+                }
 
                 $idNumber = sprintf('SK-%02d-%03d', ($bIndex + 1), $user->id);
 

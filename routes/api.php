@@ -88,6 +88,8 @@ Route::prefix('v1')->group(function () {
 
             // Roles & Permissions RBAC
             Route::get('/roles', [AdminRoleController::class, 'index']);
+            Route::post('/roles', [AdminRoleController::class, 'store']);
+            Route::put('/roles/{id}', [AdminRoleController::class, 'update']);
             Route::put('/roles/{id}/permissions', [AdminRoleController::class, 'update']);
 
             // Activity Audit Logs
